@@ -21,5 +21,5 @@ def api_response(api, api_key, how_long):
         return response.status_code, {}, []
 
     data = response.json()
-    items = data.get('Items')
+    items = data.get('Items', [])
     return response.status_code, data, items
