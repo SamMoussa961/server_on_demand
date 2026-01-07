@@ -54,7 +54,7 @@ class TestWakeServer(unittest.TestCase):
 
 
     @mock.patch('src.wake_server.ping_host', return_value=False)
-    @mock.patch('src.wake_server.send_magic_packet', return_value=True)
+    @mock.patch('src.wake_server.send_magic_packet')
     def test_wake_server_is_down(self, mock_send_magic_packet, mock_ping_host):
         ip_address = '127.0.0.1'
         mac_address = '00:11:22:33:44:55'
