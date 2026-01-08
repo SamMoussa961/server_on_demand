@@ -23,3 +23,7 @@ def api_response(api, api_key, how_long):
     data = response.json()
     items = data.get('Items', [])
     return response.status_code, data, items
+
+def process_results(api, api_key, how_long):
+    status_code, _, _ = api_response(api, api_key, how_long)
+    return status_code == 200

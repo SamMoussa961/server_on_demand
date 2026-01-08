@@ -1,6 +1,6 @@
 import unittest
 from unittest import mock
-from src.fetch import api_response
+from src.fetch import api_response, process_results
 
 #
 class FetchTest(unittest.TestCase):
@@ -95,3 +95,12 @@ class FetchTest(unittest.TestCase):
         status, retrieved, items = api_response('http://fake-api', 'good_key', 60)
 
         self.assertEqual(items, [])
+
+
+    @mock.patch('src.fetch.api_response')
+    def test_process_results(self, mock_api_call):
+        mock_api_call.return_value = 200, {}, []
+
+        value = process_results('http://fake-api', 'good_key', 60)
+        mock_api_call.assert_called_once()
+        self.assertTrue(value)
