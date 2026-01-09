@@ -25,5 +25,7 @@ def api_response(api, api_key, how_long):
     return response.status_code, data, items
 
 def process_results(api, api_key, how_long):
-    status_code, _, _ = api_response(api, api_key, how_long)
-    return status_code == 200
+    status_code, _, items = api_response(api, api_key, how_long)
+    if status_code != 200:
+        return False
+    return len(items) > 0

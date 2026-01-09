@@ -5,7 +5,7 @@ from src.fetch import api_response, process_results
 #
 class FetchTest(unittest.TestCase):
 
-    # test api returning a 200 response
+    # test api returning a valid response (200), and returning a list of items
     @mock.patch('src.fetch.requests.get')
     def test_api_response_200(self, mock_get):
         mock_response = mock.Mock()
@@ -17,7 +17,7 @@ class FetchTest(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(items, [])
 
-    # test api returning 401 response
+    # test api returning unauthorized response (401), empty dict., and list
     @mock.patch('src.fetch.requests.get')
     def test_api_response_401(self, mock_get):
         mock_response = mock.Mock()
@@ -70,6 +70,7 @@ class FetchTest(unittest.TestCase):
         self.assertEqual(len(items), 2)
         self.assertEqual(items[0]['Type'], 'VideoPlayback')
 
+    # test function's authority measures (token) and the use of the minDate provided
     @mock.patch('src.fetch.requests.get')
     def test_api_request_contains_auth_and_min_date(self, mock_get):
         mock_response = mock.Mock()
@@ -85,6 +86,7 @@ class FetchTest(unittest.TestCase):
         self.assertEqual(kwargs['headers']['X-Emby-Token'], 'good_key')
         self.assertIn('minDate', kwargs['params'])
 
+    # test function to ensure the return of an empty list (data handling if a key is missing)
     @mock.patch('src.fetch.requests.get')
     def test_api_response_missing_items_key(self, mock_get):
         mock_response = mock.Mock()
@@ -96,11 +98,19 @@ class FetchTest(unittest.TestCase):
 
         self.assertEqual(items, [])
 
-
+    # Test process_results function to return True if data was retrieved
     @mock.patch('src.fetch.api_response')
     def test_process_results(self, mock_api_call):
-        mock_api_call.return_value = 200, {}, []
+        mock_api_call.return_value = 200, {}, ['isActive']
 
         value = process_results('http://fake-api', 'good_key', 60)
         mock_api_call.assert_called_once()
         self.assertTrue(value)
+
+    # test process results function for bad requests
+    @mock.patch('src.fetch.api_response')
+    def test_process_results_error(self, mock_api_call):
+        mock_api_call.return_value = 401, {}, []
+
+        value = process_results('http://fake-api', 'bad_key', 60)
+        self.assertFalse(value)
