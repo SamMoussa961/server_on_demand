@@ -1,4 +1,4 @@
-# JellyfinOnDemandMedia
+# server_on_demand
 
 ## Summary
 
