@@ -38,7 +38,7 @@ class TestController(unittest.TestCase):
         how_long = 60
 
         value = controller(ip_address, mac_address, broadcast_address, api_url, api_key, how_long)
-        self.assertFalse(value)
+        self.assertEqual(value, "no_activity")
 
         mock_ensure_awake.assert_not_called()
         mock_process_results.assert_called_once()
@@ -49,7 +49,7 @@ class TestController(unittest.TestCase):
     @mock.patch("src.controller.process_results", return_value=True)
     @mock.patch("src.controller.ensure_awake", return_value=False)
     @mock.patch("src.controller.send_magic", return_value=True)
-    def test_controller_found_active_user_server_off(self, mock_send_magic, mock_ensure_awake, mock_process_results):
+    def test_controller_found_active_user_server_off_wol_sent(self, mock_send_magic, mock_ensure_awake, mock_process_results):
         ip_address = '127.0.0.1'
         mac_address = '12:34:56:78:90:AB'
         broadcast_address = '192.168.1.255'
@@ -58,7 +58,25 @@ class TestController(unittest.TestCase):
         how_long = 60
 
         value = controller(ip_address, mac_address, broadcast_address, api_url, api_key, how_long)
-        self.assertTrue(value)
+        self.assertEqual(value, "wol_sent")
+
+        mock_send_magic.assert_called_once()
+        mock_ensure_awake.assert_called_once()
+        mock_process_results.assert_called_once()
+
+    @mock.patch("src.controller.process_results", return_value=True)
+    @mock.patch("src.controller.ensure_awake", return_value=False)
+    @mock.patch("src.controller.send_magic", return_value=False)
+    def test_controller_found_active_user_server_off_wol_failed(self, mock_send_magic, mock_ensure_awake, mock_process_results):
+        ip_address = '127.0.0.1'
+        mac_address = '12:34:56:78:90:AB'
+        broadcast_address = '192.168.1.255'
+        api_url = "http://fake-url.com"
+        api_key = "fake-key"
+        how_long = 60
+
+        value = controller(ip_address, mac_address, broadcast_address, api_url, api_key, how_long)
+        self.assertEqual(value, "wol_failed")
 
         mock_send_magic.assert_called_once()
         mock_ensure_awake.assert_called_once()
@@ -79,7 +97,7 @@ class TestController(unittest.TestCase):
         how_long = 60
 
         value = controller(ip_address, mac_address, broadcast_address, api_url, api_key, how_long)
-        self.assertTrue(value)
+        self.assertEqual(value, "already_on")
 
         mock_ensure_awake.assert_called_once()
         mock_process_results.assert_called_once()

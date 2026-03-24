@@ -7,13 +7,16 @@ def ensure_awake(ip):
         return True
     return False
 
-def controller(ip_address, mac_address, broadcast_address, api_url, api_key, how_long):
+def controller(ip_address, mac_address, broadcast_address, api_url, api_key, how_long, skip_wol=False):
     active = process_results(api_url, api_key, how_long)
 
     if not active:
-        return False
+        return "no_activity"
 
     if ensure_awake(ip_address):
-        return True
+        return "already_on"
 
-    return send_magic(mac_address, broadcast_address)
+    if skip_wol:
+        return "wol_skipped"
+
+    return "wol_sent" if send_magic(mac_address, broadcast_address) else "wol_failed"
