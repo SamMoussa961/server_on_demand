@@ -98,10 +98,10 @@ class FetchTest(unittest.TestCase):
 
         self.assertEqual(items, [])
 
-    # Test process_results function to return True if data was retrieved
+    # Test process_results returns True when an active-type item is present
     @mock.patch('src.fetch.api_response')
     def test_process_results(self, mock_api_call):
-        mock_api_call.return_value = 200, {}, ['isActive']
+        mock_api_call.return_value = 200, {}, [{'Type': 'SessionStarted'}]
 
         value = process_results('http://fake-api', 'good_key', 60)
         mock_api_call.assert_called_once()
@@ -113,4 +113,47 @@ class FetchTest(unittest.TestCase):
         mock_api_call.return_value = 401, {}, []
 
         value = process_results('http://fake-api', 'bad_key', 60)
+        self.assertFalse(value)
+
+    # Items contains only SessionEnded → no active session → False
+    @mock.patch('src.fetch.api_response')
+    def test_process_results_only_session_ended(self, mock_api_call):
+        mock_api_call.return_value = 200, {}, [{'Type': 'SessionEnded'}]
+
+        value = process_results('http://fake-api', 'good_key', 60)
+        self.assertFalse(value)
+
+    # Items contains SessionStarted → active → True
+    @mock.patch('src.fetch.api_response')
+    def test_process_results_session_started(self, mock_api_call):
+        mock_api_call.return_value = 200, {}, [{'Type': 'SessionStarted'}]
+
+        value = process_results('http://fake-api', 'good_key', 60)
+        self.assertTrue(value)
+
+    # Items contains VideoPlayback → active → True
+    @mock.patch('src.fetch.api_response')
+    def test_process_results_video_playback(self, mock_api_call):
+        mock_api_call.return_value = 200, {}, [{'Type': 'VideoPlayback'}]
+
+        value = process_results('http://fake-api', 'good_key', 60)
+        self.assertTrue(value)
+
+    # Items contains SessionStarted and SessionEnded → still active → True
+    @mock.patch('src.fetch.api_response')
+    def test_process_results_started_and_ended(self, mock_api_call):
+        mock_api_call.return_value = 200, {}, [
+            {'Type': 'SessionStarted'},
+            {'Type': 'SessionEnded'},
+        ]
+
+        value = process_results('http://fake-api', 'good_key', 60)
+        self.assertTrue(value)
+
+    # Items is empty → no activity → False
+    @mock.patch('src.fetch.api_response')
+    def test_process_results_empty_items(self, mock_api_call):
+        mock_api_call.return_value = 200, {}, []
+
+        value = process_results('http://fake-api', 'good_key', 60)
         self.assertFalse(value)

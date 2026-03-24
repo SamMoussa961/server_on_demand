@@ -1,11 +1,10 @@
-import os
 import requests
 import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
-URL = os.getenv('JELLYFIN_API_URL')
-SECRET = os.getenv('JELLYFIN_API_KEY')
+
+ACTIVE_TYPES = {"SessionStarted", "VideoPlayback"}
 
 
 def api_response(api, api_key, how_long):
@@ -28,4 +27,4 @@ def process_results(api, api_key, how_long):
     status_code, _, items = api_response(api, api_key, how_long)
     if status_code != 200:
         return False
-    return len(items) > 0
+    return any(item.get('Type') in ACTIVE_TYPES for item in items)
