@@ -1,3 +1,4 @@
+import logging
 import unittest
 from unittest import mock
 
@@ -5,6 +6,12 @@ from src.controller import ensure_awake, controller
 
 
 class TestController(unittest.TestCase):
+
+    def setUp(self):
+        logging.disable(logging.CRITICAL)
+
+    def tearDown(self):
+        logging.disable(logging.NOTSET)
 
     #
     @mock.patch("src.controller.ping_host", return_value=True)

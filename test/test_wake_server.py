@@ -1,9 +1,16 @@
+import logging
 import subprocess
 import unittest
 from unittest import mock
 from src.wake_server import ping_host, send_magic
 
 class TestWakeServer(unittest.TestCase):
+
+    def setUp(self):
+        logging.disable(logging.CRITICAL)
+
+    def tearDown(self):
+        logging.disable(logging.NOTSET)
 
     # test for a reachable host
     @mock.patch('src.wake_server.subprocess.run')

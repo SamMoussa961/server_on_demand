@@ -1,9 +1,16 @@
+import logging
 import unittest
 from unittest import mock
 from src.fetch import api_response, process_results
 
 #
 class FetchTest(unittest.TestCase):
+
+    def setUp(self):
+        logging.disable(logging.CRITICAL)
+
+    def tearDown(self):
+        logging.disable(logging.NOTSET)
 
     # test api returning a valid response (200), and returning a list of items
     @mock.patch('src.fetch.requests.get')

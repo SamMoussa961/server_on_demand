@@ -1,3 +1,4 @@
+import logging
 import subprocess
 import unittest
 from unittest import mock
@@ -6,6 +7,12 @@ from src.shutdown_server import shutdown_server
 
 
 class TestShutdownServer(unittest.TestCase):
+
+    def setUp(self):
+        logging.disable(logging.CRITICAL)
+
+    def tearDown(self):
+        logging.disable(logging.NOTSET)
 
     @mock.patch('src.shutdown_server.subprocess.run')
     def test_shutdown_success(self, mock_run):
