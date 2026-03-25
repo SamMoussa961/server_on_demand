@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "dotenv>=0.9.9",
+    "pytest>=9.0.2",
     "requests>=2.32.5",
     "wakeonlan>=3.1.0",
 ]

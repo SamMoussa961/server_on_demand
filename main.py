@@ -6,6 +6,8 @@ import time
 from dotenv import load_dotenv
 
 from src.controller import controller
+from src.shutdown_server import shutdown_server
+from src.wake_server import ping_host
 
 load_dotenv()
 
@@ -15,6 +17,7 @@ REQUIRED_VARS = [
     "BROADCAST_ADDRESS",
     "JELLYFIN_API_URL",
     "JELLYFIN_API_KEY",
+    "SHUTDOWN_SSH_USER"
 ]
 
 
@@ -32,11 +35,12 @@ def main():
     check_interval = int(os.getenv("CHECK_INTERVAL"))
     packet_cooldown = int(os.getenv("PACKET_COOLDOWN_TIME"))
     cooldown_time = int(os.getenv("COOLDOWN_TIME"))
+    ssh_user = os.getenv("SHUTDOWN_SSH_USER")
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
     last_wol_sent = None
-    last_activity_time = None
+    last_activity_time = time.time()
 
     try:
         while True:
@@ -50,13 +54,21 @@ def main():
             if result == "wol_sent":
                 logging.info("No active sessions, server offline — WoL packet sent to %s", mac)
                 last_wol_sent = time.time()
+                last_activity_time = time.time()
             elif result == "already_on":
                 logging.debug("Active sessions detected, server already online")
                 last_activity_time = time.time()
             elif result == "no_activity":
                 logging.debug("No active sessions")
-                if last_activity_time is not None and (time.time() - last_activity_time) > cooldown_time:
-                    logging.warning("Server idle for %ds — shutdown threshold reached", cooldown_time)
+                idle_seconds = time.time() - last_activity_time
+                if idle_seconds >= cooldown_time:
+                    if ping_host(ip):
+                        logging.info("Server idle for %.0fs — sending shutdown to %s", idle_seconds, ip)
+                        if shutdown_server(ip, ssh_user):
+                            logging.info("Shutdown command sent successfully")
+                            last_activity_time = time.time()
+                        else:
+                            logging.warning("Shutdown command failed — will retry next cycle")
             elif result == "wol_failed":
                 logging.warning("WoL packet failed for %s — will retry next cycle", mac)
             elif result == "wol_skipped":

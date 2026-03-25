@@ -1,0 +1,11 @@
+services:
+
+  on_demand:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jellyfin_server_on_demand
+    restart: unless-stopped
+    env_file:
+      - .env
+    network_mode: host
